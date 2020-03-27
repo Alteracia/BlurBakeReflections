@@ -374,7 +374,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_StaticEditorFlags: 4294967294
   m_IsActive: 1
 --- !u!114 &1135800790
 MonoBehaviour:
@@ -388,9 +388,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6d7a2c222fa7324995670f887952075, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chromakey: {r: 0.10196079, g: 0.19607845, b: 0.38431376, a: 1}
+  chromakey: {r: 0, g: 0, b: 0, a: 1}
   cromakey_mat: {fileID: 2100000, guid: f3e9fdad817c9d749b984410112f6d2a, type: 2}
-  spread:
+  steps: 3
+  heights_spread:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
@@ -415,10 +416,9 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   maxHeight: 3
-  startHeight: 0.20782793
-  endHeight: 2.2049468
-  start_resolution: 2048
-  steps: 5
+  startHeight: 0.19862548
+  endHeight: 2.5362353
+  resolution: 2048
   probe_reflect: {fileID: 0}
 --- !u!64 &1135800791
 MeshCollider:

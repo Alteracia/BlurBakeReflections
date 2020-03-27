@@ -6,20 +6,20 @@ public class PlanerBBR : MonoBehaviour
     public Color chromakey;
     [HideInInspector]
     public Material cromakey_mat;
-    private Material source_mat;
-    public AnimationCurve spread;
+    [HideInInspector]
+    public int steps = 3;
+    public AnimationCurve heights_spread;
     public float maxHeight = 10;
     [HideInInspector]
     public float startHeight;
     [HideInInspector]
     public float endHeight;
     [HideInInspector]
-    public int start_resolution;
-    [HideInInspector]
-    public int steps = 5;
+    public int resolution;    
     [HideInInspector]
     public ReflectionProbe probe_reflect;
     private MeshRenderer rend;
+    private Material source_mat;
     private ShadowCastingMode shadow_mode;
 
     public void BuildProbe()
@@ -39,8 +39,9 @@ public class PlanerBBR : MonoBehaviour
         probe.transform.SetParent(this.transform);
         probe_reflect = probe.GetComponent<ReflectionProbe>();
         probe_reflect.mode = ReflectionProbeMode.Custom;
+        probe_reflect.resolution = resolution;
         Transform cam = Camera.main.transform;
-        probe.transform.position = cam.position - Vector3.up * (cam.position.y - transform.position.y) * 2;          
+        probe.transform.position = cam.position - Vector3.up * (cam.position.y - transform.position.y) * 2;
     }
 
     public void SetUpProbe(int step)
@@ -52,9 +53,8 @@ public class PlanerBBR : MonoBehaviour
         }
         else
         {
-            rend.sharedMaterial.SetFloat("_Height", startHeight + (endHeight - startHeight) * spread.Evaluate((float)(step + 1) / steps));            
-        }
-        probe_reflect.resolution = (int)((float)start_resolution / Mathf.Pow(2, step));
+            rend.sharedMaterial.SetFloat("_Height", startHeight + (endHeight - startHeight) * heights_spread.Evaluate((float)(step + 1) / steps));            
+        }        
     }
 
     public void SetReflection(int step)

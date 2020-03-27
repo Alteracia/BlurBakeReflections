@@ -10,22 +10,23 @@ using System;
 public class BBREditor : Editor
 {
     private int res_index = 0;
-    private int[] res_options = new int[] { 2048, 1024, 512 };
+    private int[] res_options = new int[] { 2048, 1024, 512, 256, 128, 64, 32 };
     public override void OnInspectorGUI()
     {
         PlanerBBR bbr = (PlanerBBR)target;
-        bbr.steps = 5;
+        bbr.steps = 3;
         DrawDefaultInspector();
         EditorGUILayout.BeginHorizontal();        
         EditorGUILayout.LabelField("Height: from to", bbr.startHeight.ToString("0.00"));
-        EditorGUILayout.LabelField(bbr.endHeight.ToString("0.00"));
+        var style = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter };
+        EditorGUILayout.LabelField(bbr.endHeight.ToString("0.00"), style);
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.MinMaxSlider(ref bbr.startHeight, ref bbr.endHeight, 0, bbr.maxHeight);
-        res_index = EditorGUILayout.Popup("Start resolution",
+        res_index = EditorGUILayout.Popup("Resolution",
              res_index, res_options.Select(x => x.ToString()).ToArray(), EditorStyles.popup);               
-        if (res_options[res_index] != bbr.start_resolution)
+        if (res_options[res_index] != bbr.resolution)
         {
-            bbr.start_resolution = res_options[res_index];
+            bbr.resolution = res_options[res_index];
         }
         if (GUILayout.Button("Bake Textures"))
         {
