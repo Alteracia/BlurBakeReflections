@@ -1,5 +1,7 @@
 # BlurBakeReflections
-![cover](Previews/2020-04-02_13-07-00.png)
+![cover](Previews/2020-04-02_13-07-00.png)  
+  
+  
 Baked Reflections whith unrealistic blur effect for Unity.  
   
 - URP only
