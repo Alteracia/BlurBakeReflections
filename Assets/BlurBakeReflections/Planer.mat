@@ -53,15 +53,15 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Reflection_0:
-        m_Texture: {fileID: 8900000, guid: 4034ea39f26c93549a62815f07546fcd, type: 3}
+        m_Texture: {fileID: 8900000, guid: 71dbe22facfab2b4ab0682b9b3569289, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Reflection_1:
-        m_Texture: {fileID: 8900000, guid: 26a4c2378eecccc47a9cfee96d84fe1b, type: 3}
+        m_Texture: {fileID: 8900000, guid: b6ec6ff072e1e1f40b27bb3e9b0e14ee, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Reflection_2:
-        m_Texture: {fileID: 8900000, guid: 8ff1561922e1d034eac140ad402b28eb, type: 3}
+        m_Texture: {fileID: 8900000, guid: 8a4af38ba52180b49b6377ffdca74e7e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Reflection_3:
@@ -99,21 +99,21 @@ Material:
     - _DstBlend: 0
     - _EnvironmentReflections: 1
     - _Fresnel: 1
-    - _Fuzziness: 33.1
+    - _Fuzziness: 34
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Height: 0
     - _Metallic: 0
     - _OcclusionStrength: 1
-    - _Precision: 0.82
+    - _Precision: 0.39
     - _Presition: 0.81
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _ReflectionIntensity: 0.9
+    - _ReflectionIntensity: 0.5
     - _Reflectionintensity: 1
-    - _SmoothEnd: 0.902
-    - _SmoothStart: 0
+    - _SmoothEnd: 0.93
+    - _SmoothStart: 0.17
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
@@ -123,12 +123,13 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-    - _ChromaKey: {r: 1, g: 1, b: 1, a: 1}
+    - _ChromaKey: {r: 0.105882354, g: 1, b: 0, a: 1}
     - _ChromoKey: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.22552508, g: 0.22552508, b: 0.26415092, a: 1}
+    - _Color: {r: 0.3773585, g: 0.361, b: 0.29725882, a: 1}
     - _DepthSmooth: {r: 0, g: 1, b: 0, a: 0}
     - _DepthSmooth_1: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _FarColor: {r: 2, g: 2, b: 2, a: 0}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _Tilling: {r: 2, g: 2, b: 0, a: 0}

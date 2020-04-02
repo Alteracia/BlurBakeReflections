@@ -49,7 +49,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _Alpha: 0.5
+    - _Alpha: 1
     - _AlphaClip: 0
     - _Blend: 0
     - _BumpScale: 1
@@ -74,7 +74,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-    - _ChromaKey: {r: 1, g: 1, b: 1, a: 1}
+    - _ChromaKey: {r: 0.105882354, g: 1, b: 0, a: 1}
     - _Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}

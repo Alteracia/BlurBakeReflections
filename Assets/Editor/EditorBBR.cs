@@ -3,50 +3,54 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using System;
+using UnityEngine.SceneManagement;
 
 [CustomEditor(typeof(PlanerBBR))]
 public class BBREditor : Editor
 {
+    private PlanerBBR bbr;
     private bool preview;
     private int res_index = 0;
     private int[] res_options = new int[] { 2048, 1024, 512, 256, 128, 64, 32 };
     public override void OnInspectorGUI()
     {
-        PlanerBBR bbr = (PlanerBBR)target;
-        if (!bbr.chromakey_mat)
-            bbr.chromakey_mat = AssetDatabase.LoadAssetAtPath("Assets/BlurBakeReflections/ChromaKey.mat", typeof(Material)) as Material;
-        res_index = Array.FindIndex(res_options, r => r == bbr.resolution);
-        bbr.steps = 3;
+        bbr = (PlanerBBR)target;
+        if (!bbr.ChromaKey_Mat)
+            bbr.ChromaKey_Mat = AssetDatabase.LoadAssetAtPath("Assets/BlurBakeReflections/ChromaKey.mat", typeof(Material)) as Material;
+        if (!bbr.ViewPoint)
+            bbr.ViewPoint = Camera.main.transform;
+        res_index = Array.FindIndex(res_options, r => r == bbr.Resolution);
+        bbr.Steps = 3;
         DrawDefaultInspector();
-        if (bbr.previewHeights != preview)
+        if (bbr.PreviewHeights != preview)
         {
             bbr.UpdateHeights();
-            preview = bbr.previewHeights;
+            preview = bbr.PreviewHeights;
         }        
         EditorGUILayout.BeginHorizontal();        
-        EditorGUILayout.LabelField("Height: from to", bbr.startHeight.ToString("0.00"));
+        EditorGUILayout.LabelField("Height: from to", bbr.StartHeight.ToString("0.00"));
         var style = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter };
-        EditorGUILayout.LabelField(bbr.endHeight.ToString("0.00"), style);
+        EditorGUILayout.LabelField(bbr.EndHeight.ToString("0.00"), style);
         if (preview)
         {
-            bbr.SetUpPreviewHeights();           
+            bbr.SetUpPreviewHeights();
         }
         EditorGUILayout.EndHorizontal();
-        EditorGUILayout.MinMaxSlider(ref bbr.startHeight, ref bbr.endHeight, 0, bbr.maxSceneHeight);
+        EditorGUILayout.MinMaxSlider(ref bbr.StartHeight, ref bbr.EndHeight, 0, bbr.MaxSceneHeight);
         res_index = EditorGUILayout.Popup("Resolution",
              res_index, res_options.Select(x => x.ToString()).ToArray(), EditorStyles.popup);               
-        if (res_options[res_index] != bbr.resolution)
+        if (res_options[res_index] != bbr.Resolution)
         {
-            bbr.resolution = res_options[res_index];
+            bbr.Resolution = res_options[res_index];
         }
         if (GUILayout.Button("Bake Textures"))
         {            
             if (bbr.BuildProbe())
             {
-                for (int i = 0; i < bbr.steps; i++)
+                for (int i = 0; i < bbr.Steps; i++)
                 {
                     bbr.SetUpProbe(i);
-                    if (!BakeCustomReflectionProbe(bbr.probe_reflect, i, bbr.steps))
+                    if (!BakeCustomReflectionProbe(bbr.Probe_Reflect, i, bbr.Steps))
                         return;
                     bbr.SetReflection(i);
                 }
@@ -55,13 +59,11 @@ public class BBREditor : Editor
         }        
     }   
 
-    private bool BakeCustomReflectionProbe(ReflectionProbe probe, int step, int steps)
+    private bool BakeCustomReflectionProbe(ReflectionProbe probe, int step, int Steps)
     {       
         string targetExtension = probe.hdr ? "exr" : "png";
-        string targetPath = "Assets/BlurBakeReflections/Probes";
-        if (string.IsNullOrEmpty(targetPath))
-            targetPath = "Assets";
-        else if (Directory.Exists(targetPath) == false)
+        string targetPath = "Assets/BlurBakeReflections/Probes/" + SceneManager.GetActiveScene().name + "_" + bbr.transform.name + "_" + bbr.ViewPoint.name;
+        if (Directory.Exists(targetPath) == false)
             Directory.CreateDirectory(targetPath);
         string fileName = probe.name + step.ToString() + (probe.hdr ? "-reflectionHDR" : "-reflection") + "." + targetExtension;
         string path = Path.Combine(targetPath, fileName);       
@@ -69,7 +71,7 @@ public class BBREditor : Editor
             return false;
         if (File.Exists(path))
             AssetDatabase.DeleteAsset(path);
-        EditorUtility.DisplayProgressBar("Reflection Probe " + (step + 1).ToString() + "/" + steps.ToString(), "Baking " + path, (float)(step + 1) / steps);
+        EditorUtility.DisplayProgressBar("Reflection Probe " + (step + 1).ToString() + "/" + Steps.ToString(), "Baking " + path, (float)(step + 1) / Steps);
         
             if (!Lightmapping.BakeReflectionProbe(probe, path))
             {

@@ -2,47 +2,63 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
+[RequireComponent(typeof(MeshRenderer))]
 public class PlanerBBR : MonoBehaviour
 {
-    public Color chromakey = Color.black;
+    [Tooltip("Add your camera here. Default - Camera.main")]
+    public Transform ViewPoint;
+    [Tooltip("Use the most rare color from scene.")]
+    public Color ChromaKey = Color.black;
     [HideInInspector]
-    public Material chromakey_mat;
+    public Material ChromaKey_Mat;
     [HideInInspector]
-    public int steps = 3;
-    public bool previewHeights = false;
-    private List<GameObject> Heights = new List<GameObject>();
+    public int Steps = 3;
+    [Tooltip("Visualze system of cuts.")]
+    public bool PreviewHeights = false;
+    private List<GameObject> heights = new List<GameObject>();
     private List<GameObject> childrens = new List<GameObject>();
-    public float maxSceneHeight = 10;
+    [Tooltip("Approximate height of scene. Use range to set up cuts.")]
+    public float MaxSceneHeight = 2;
     [HideInInspector]
-    public float startHeight = 0.1f;
+    public float StartHeight = 0.1f;
     [HideInInspector]
-    public float endHeight = 1.0f;
+    public float EndHeight = 1.0f;
     [HideInInspector]
-    public int resolution = 2048;
+    public int Resolution = 2048;
     [HideInInspector]
-    public ReflectionProbe probe_reflect;
+    public ReflectionProbe Probe_Reflect;
+
     private MeshRenderer rend;
     private Material source_mat;
     private ShadowCastingMode shadow_mode;
 
     public bool BuildProbe()
     {
-        ClearHeights();
         if (this.transform.GetComponent<Renderer>().sharedMaterial.shader.name != "Shader Graphs/PlanerBBR")
         {
             Debug.LogError("Wrong Shader \"" + this.transform.GetComponent<Renderer>().sharedMaterial.shader.name + "\" use \"Shader Graphs/PlanerBBR\" instead");
             return false;
         }
-        if (!chromakey_mat)
+        if (!ChromaKey_Mat)
         {
-            Debug.LogError("Can't load material at \"Assets / BlurBakeReflections / ChromaKey.mat\"");
+            Debug.LogError("Can't load material from \"Assets / BlurBakeReflections / ChromaKey.mat\"");
             return false;
         }
-        if (chromakey_mat.shader.name != "Shader Graphs/PlanerChromaKey")
+        if (ChromaKey_Mat.shader.name != "Shader Graphs/PlanerChromaKey")
         {
-            Debug.LogError("Wrong Shader \"" + chromakey_mat.shader.name + "\" use \"Shader Graphs/PlanerChromaKey\" instead");
+            Debug.LogError("Wrong Shader \"" + ChromaKey_Mat.shader.name + "\" use \"Shader Graphs/PlanerChromaKey\" instead");
             return false;
         }
+        if (!ViewPoint)
+        {
+            Debug.LogError("No camera attached");
+            return false;
+        }
+
+        ClearHeights();
+        /*
+         * Prepare Renderer
+         */
         if (!rend)
         {
             rend = transform.GetComponent<MeshRenderer>();
@@ -50,75 +66,71 @@ public class PlanerBBR : MonoBehaviour
         }       
         shadow_mode = rend.shadowCastingMode;
         rend.shadowCastingMode = ShadowCastingMode.Off;        
-        rend.sharedMaterial.SetColor("_ChromaKey", chromakey);
+        rend.sharedMaterial.SetColor("_ChromaKey", ChromaKey);
         source_mat = rend.sharedMaterial;
-        rend.sharedMaterial = chromakey_mat;
-        chromakey_mat.SetColor("_ChromaKey", chromakey);
-        chromakey_mat.SetFloat("_Alpha", 1.0f);
+        rend.sharedMaterial = ChromaKey_Mat;
+        ChromaKey_Mat.SetColor("_ChromaKey", ChromaKey);
+        ChromaKey_Mat.SetFloat("_Alpha", 1.0f);
+        /*
+         * Prepare ReflectionProbe
+         */
         GameObject probe = new GameObject("BBRProbe", typeof(ReflectionProbe));
         probe.transform.SetParent(this.transform);
-        probe_reflect = probe.GetComponent<ReflectionProbe>();
-        probe_reflect.mode = ReflectionProbeMode.Custom;
-        probe_reflect.resolution = resolution;
-        Transform cam = Camera.main.transform;
-        probe.transform.position = cam.position - this.transform.up * (Vector3.Project(cam.position - transform.position, this.transform.up).magnitude) * 2;
+        Probe_Reflect = probe.GetComponent<ReflectionProbe>();
+        Probe_Reflect.mode = ReflectionProbeMode.Custom;
+        Probe_Reflect.resolution = Resolution;        
+        probe.transform.position = ViewPoint.position - this.transform.up * (Vector3.Project(ViewPoint.position - transform.position, this.transform.up).magnitude) * 2;
         return true;
     }
 
     public void UpdateHeights()
     {
         Transform parent = this.transform.Find("BBRHeights");
-        if (!parent && Heights.Count != 0)
-        {
-            Heights.Clear();
-        }
-        if (parent && Heights.Count == 0)
-        {
-            DestroyAllChildren(parent);
-        }
-        if (parent && Heights.Count != 0)
-        {
-            foreach (GameObject height in Heights)
-            {
+        if (!parent && heights.Count != 0) // Clear List without parent
+            heights.Clear();
+        if (parent && heights.Count == 0) // Destroy parent whith empty List
+            DestroyAllChildren(parent, this.transform);
+        if (parent && heights.Count != 0) // Check if parent has children and they on the List
+            foreach (GameObject height in heights)           
                 if (!height)
                 {
-                    Heights.Clear();
-                    DestroyAllChildren(parent);
+                    heights.Clear();
+                    DestroyAllChildren(parent, this.transform);
                     break;
                 }
-            }
-        }
-        if (previewHeights && Heights.Count == 0)
+        if (PreviewHeights && heights.Count == 0) // Set preview on
         {
-            GameObject new_parent = new GameObject("BBRHeights");
+            GameObject new_parent = new GameObject("BBRHeights"); // Create empty parent
             new_parent.transform.SetParent(this.transform);
-            new_parent.transform.localPosition = Vector3.zero;
-            new_parent.transform.localEulerAngles = Vector3.zero;
-            new_parent.transform.localScale = Vector3.one;
-            for (int i = 0; i < 2; i++)
+            ZeroTransform(new_parent.transform);
+            for (int i = 0; i < 2; i++) // Create children = heights
             {
                 GameObject height = (GameObject)Instantiate(this.gameObject, new_parent.transform);
                 DestroyImmediate(height.GetComponent<PlanerBBR>());
                 DestroyAllChildren(height.transform);
-                height.transform.localPosition = Vector3.zero;
-                height.transform.localEulerAngles = Vector3.zero;
-                height.transform.localScale = Vector3.one;
-                height.name = "height " + (i + 1);
+                ZeroTransform(height.transform);
+                height.name = "height " + (i);
                 height.tag = "EditorOnly";
                 height.isStatic = false;
                 MeshRenderer h_rend = height.GetComponent<MeshRenderer>();
-                h_rend.sharedMaterial = chromakey_mat;
+                h_rend.sharedMaterial = ChromaKey_Mat;
                 h_rend.shadowCastingMode = ShadowCastingMode.Off;
                 h_rend.receiveShadows = false;
-                Heights.Add(height);
+                heights.Add(height); // Put them on the List
             }
-            chromakey_mat.SetFloat("_Alpha", 0.25f);
         }
-        if (!previewHeights && Heights.Count != 0)
+        if (!PreviewHeights && heights.Count != 0)  // Set preview off
         {
-            Heights.Clear();
-            DestroyAllChildren(parent);
+            heights.Clear();
+            DestroyAllChildren(parent, this.transform);
         }
+    }
+
+    private void ZeroTransform(Transform trans)
+    {
+        trans.transform.localPosition = Vector3.zero;
+        trans.transform.localEulerAngles = Vector3.zero;
+        trans.transform.localScale = Vector3.one;
     }
 
     private void DestroyAllChildren(Transform parent)
@@ -140,52 +152,52 @@ public class PlanerBBR : MonoBehaviour
         while (child)
         {
             DestroyImmediate(child.gameObject);
-            child = this.transform.Find(c_name);
+            child = parent.Find(c_name);
         }
     }
+
     public void SetUpPreviewHeights()
     {
-        if (Heights.Count == 2)
+        if (heights.Count == 2)
         {
-            if (Heights[0])
-                Heights[0].transform.position = this.transform.position + startHeight * this.transform.up;
-            if (Heights[1])
-                Heights[1].transform.position = this.transform.position + endHeight * this.transform.up;
-            chromakey_mat.SetFloat("_Alpha", 0.5f);
-            chromakey_mat.SetColor("_ChromaKey", chromakey);
+            if (heights[0])
+                heights[0].transform.position = this.transform.position + StartHeight * this.transform.up;
+            if (heights[1])
+                heights[1].transform.position = this.transform.position + EndHeight * this.transform.up;
+            ChromaKey_Mat.SetFloat("_Height", 0.0f);
+            ChromaKey_Mat.SetFloat("_Alpha", 0.25f);
+            ChromaKey_Mat.SetColor("_ChromaKey", ChromaKey);
         }
     }
 
     public void SetUpProbe(int step)
     {
-        if (step + 1 == steps)
+        if (step + 1 == Steps)
         {
             rend.sharedMaterial.SetFloat("_Height", 0);
             rend.sharedMaterial = source_mat;
         }
-        else
-        {
-            rend.sharedMaterial.SetFloat("_Height", startHeight + (endHeight - startHeight) * (float)step);
-        }        
+        else        
+            rend.sharedMaterial.SetFloat("_Height", StartHeight + (EndHeight - StartHeight) * (float)step);         
     }
 
     public void SetReflection(int step)
     {
-        source_mat.SetTexture("_Reflection_" + step, probe_reflect.customBakedTexture);
+        source_mat.SetTexture("_Reflection_" + step, Probe_Reflect.customBakedTexture);
     }
 
-    public void Clean()
+    public void Clean() // after bake
     {
-        DestroyImmediate(probe_reflect.gameObject);
-        probe_reflect = null;
+        DestroyImmediate(Probe_Reflect.gameObject);
+        Probe_Reflect = null;
         rend.shadowCastingMode = shadow_mode;
     }
     public void ClearHeights()
     {
-        this.previewHeights = false;
+        this.PreviewHeights = false;
         UpdateHeights();
     }
-    private void Awake()
+    private void Awake() // destroy all helpers when game start
     {
         ClearHeights();
     }
